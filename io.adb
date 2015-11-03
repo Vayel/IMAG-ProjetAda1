@@ -9,24 +9,19 @@ package body IO is
   begin
     mes := Integer'value(val);
 
-    if flag = "-t" then
-      cmd.epaisseur := mes;
-    else if flag = "-l" then
-      cmd.longueur := mes;
-    else if flag = "-w" then
-      cmd.largeur := mes;
-    else if flag = "-q" then
-      cmd.longueurQueue := mes;
-    else if flag = "-h" then
-      cmd.hauteurExt := mes;
-    else if flag = "-b" then
-      cmd.hauteurInt := mes;
-    else
-      raise ERREUR_COMMANDE with "Le paramètre " & flag & " n'existe pas.";
-    end if;
+    case flag is
+      when "-t" => cmd.epaisseur := mes;
+      when "-l" => cmd.longueur := mes;
+      when "-w" => cmd.largeur := mes;
+      when "-q" => cmd.longueurQueue := mes;
+      when "-h" => cmd.hauteurExt := mes;
+      when "-b" => cmd.hauteurInt := mes;
+      when others => raise ERREUR_COMMANDE with "Le paramètre " & flag & " n'existe pas.";
+    end case;
   end completeCommande;
   
-  procedure litCommande(cmd: in out Commande) is
+  function creeCommande() is
+    cmd: Commande;
     flag: String;
     val: String;
   begin
@@ -44,5 +39,15 @@ package body IO is
     if commandeInvalide(cmd) or fname = "" then
       raise ERREUR_COMMANDE with "La commande est incomplète.";
     end if;
-  end litCommande;
+
+    return cmd;
+  end creeCommande;
+
+  procedure boiteVersFichier(svg: String) is
+    f: File_type;
+  begin
+    open(f, mode => Out_File, name => fname);
+    put(f, svg);
+    close(f);
+  end;
 end IO;

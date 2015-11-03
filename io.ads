@@ -11,5 +11,5 @@ package IO is
   -- fournis.
   function creeCommande return Commande;
 
-  procedure boiteVersFichier(b: String);
+  procedure boiteVersFichier(svg: String);
 end IO;
