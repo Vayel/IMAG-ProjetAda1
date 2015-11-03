@@ -4,6 +4,11 @@
 package Boite is
   type Mesure is new Natural;
 
+  type Point is record
+    x: Natural;
+    y: Natural;
+  end record;
+
   type Commande is record
     epaisseur: Mesure := 0;
     longueur: Mesure := 0;
@@ -16,7 +21,7 @@ package Boite is
   -- Une facette désigne ce qu'on découpe, puis qu'on assemble à l'aide des
   -- encoches. Une facette se représente par un polygone (une suite finie de
   -- points).
-  type Facette; -- TODO
+  type Facette is array (Integer range <>) of Point;
 
   -- Une pièce a trois types de facettes : celle formant le fond, celles ayant
   -- pour dimensions la longueur et la hauteur et celles ayant pour dimensions
@@ -52,7 +57,7 @@ package Boite is
   COULEUR_TRAIT : constant String := "255,0,0"; -- RGB
   EPAISSEUR_TRAIT : constant String := "0.1";
 
-  function facetteVersSVG(f: Facette; x, y: Integer) return String;
-  function pieceVersSVG(p: Piece; y: Integer) return String;
+  function facetteVersSVG(f: Facette; x: Integer) return String;
+  function pieceVersSVG(p: Piece; x: Integer) return String;
   function boiteVersSVG(b: Boite) return String;
 end Boite;
