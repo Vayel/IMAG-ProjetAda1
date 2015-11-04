@@ -46,7 +46,7 @@ package body IO is
   procedure boiteVersFichier(svg: String) is
     f: File_type;
   begin
-    open(f, mode => Out_File, name => fname);
+    create(f, name => fname);
     put(f, svg);
     close(f);
   end;
