@@ -2,26 +2,21 @@ with Ada.Text_IO; use Ada.Text_IO;
 
 
 package body IO is
-  fname: String := "";
-
-  procedure completeCommande(cmd: in out Commande; flag: String; val: String) is
-    mes: Mesure;
+  procedure completeCommande(cmd: in out Commande; flag: Character; mes: Mesure) is
   begin
-    mes := Integer'value(val);
-
     case flag is
-      when "-t" => cmd.epaisseur := mes;
-      when "-l" => cmd.longueur := mes;
-      when "-w" => cmd.largeur := mes;
-      when "-q" => cmd.longueurQueue := mes;
-      when "-h" => cmd.hauteurExt := mes;
-      when "-b" => cmd.hauteurInt := mes;
+      when "t" => cmd.epaisseur := mes;
+      when "l" => cmd.longueur := mes;
+      when "w" => cmd.largeur := mes;
+      when "q" => cmd.longueurQueue := mes;
+      when "h" => cmd.hauteurExt := mes;
+      when "b" => cmd.hauteurInt := mes;
       when others => raise ERREUR_COMMANDE with "Le paramètre " & flag & " n'existe pas.";
     end case;
   end completeCommande;
   
   function creeCommande() is
-    cmd: Commande;
+    param: Parametres;
     flag: String;
     val: String;
   begin
@@ -30,24 +25,18 @@ package body IO is
       get(val);
 
       if flag = "-f" then
-        fname := val;
+        param.fname := val;
       else
-        completeCommande(cmd, flag, val);
+        completeCommande(param.cmd, flag(1), Integer'value(val));
       end if;
     end loop;
 
-    if commandeInvalide(cmd) or fname = "" then
+    if commandeIncomplete(param.cmd) or param.fname = "" then
       raise ERREUR_COMMANDE with "La commande est incomplète.";
+    else if commandeIrrealisable(param.cmd) then
+      raise ERREUR_COMMANDE with "Les mesures rendent la commande irréalisable.";
     end if;
 
-    return cmd;
+    return param;
   end creeCommande;
-
-  procedure boiteVersFichier(svg: String) is
-    f: File_type;
-  begin
-    create(f, name => fname);
-    put(f, svg);
-    close(f);
-  end;
 end IO;

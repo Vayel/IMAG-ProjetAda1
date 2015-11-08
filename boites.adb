@@ -7,12 +7,16 @@ with Boite;       use Boite;
 
 
 procedure boites is
-  cmd : Commande;
+  param: Parametres;
   b : Boite;
   svg : String;
+  f: File_type;
 begin
-  cmd := creeCommande;
-  b := creeBoite(cmd);
+  param := litParametres;
+  b := creeBoite(param.cmd);
   svg := boiteVersSVG(b);
-  boiteVersFichier(svg);
+
+  create(f, name => param.fname);
+  put(f, svg);
+  close(f);
 end boites;

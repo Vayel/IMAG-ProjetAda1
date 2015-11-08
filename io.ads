@@ -7,9 +7,21 @@ with Boite; use Boite;
 package IO is
   ERREUR_COMMANDE : exception;
 
+  type Parametres is record
+    cmd: Commande;
+    fname: String; 
+  end record;
+
   -- Lit l'entrée standard et crée un objet Commande à partir des paramètres
   -- fournis.
-  function creeCommande return Commande;
+  function litParametres return Parametres;
 
-  procedure boiteVersFichier(svg: String);
+  -- Affichage d'une boite
+
+  COULEUR_TRAIT : constant String := "255,0,0"; -- RGB
+  EPAISSEUR_TRAIT : constant String := "0.1";
+
+  function facetteVersSVG(f: Facette; x: Integer) return String;
+  function pieceVersSVG(p: Piece; x: Integer) return String;
+  function boiteVersSVG(b: Boite) return String;
 end IO;
