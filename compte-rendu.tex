@@ -1,0 +1,79 @@
+\documentclass[a4paper,11pt]{article}
+
+\usepackage[latin1]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[francais]{babel}
+\usepackage{amsmath,amssymb}
+\usepackage{xspace}
+\usepackage{graphicx}
+\usepackage{verbatim}
+\usepackage{listings}
+\usepackage[usenames,dvipsnames]{color}
+\usepackage{url}
+
+\title{Projet Ada}
+\author{Nathan GUYOT \and Vincent LEFOULON}
+\date{Novembre 2015}
+
+% ===============
+\begin{document}
+% ===============
+\maketitle
+
+\section{Généralités}
+
+Le plus simple pour comprendre comment s'organise le code est de suivre les 
+grandes lignes de son exécution.
+
+Le point d'entrée de l'application est le fichier \verb+boites.adb+. On 
+l'appelle en lui fournissant sur \verb+stdin+ les paramètres de la commande.
+
+On va alors dans un premier temps faire appel au module \verb+io+ pour analyser
+les paramètres fournis et créer, à l'aide du module \verb+boite+, une
+représentation abstraite de cette commande, sous forme d'enregistrement.
+
+Puis, toujours avec le module \verb+boite+, on crée une représentation
+abstraite de la boite à partir de la commande, toujours sous forme
+d'enregistrement, même si une classe serait plus appropriée.
+
+Enfin, on fait derechef appel au module \verb+io+ pour enregistrer la boite
+sous forme de fichier SVG, à l'aide du module \verb+svg+.
+
+\section{Gestion des E/S}
+
+Pour lire la commande, il suffit de constater que les paramètres vont par
+paires : un intitulé et une valeur. On les récupère donc deux par deux puis
+stocke la valeur dans la variable correspondant à l'intitulé.
+
+\section{Représentation d'une boite}
+
+Comme en compilation, il a été décidé de passer par une représentation
+intermédiaire de la boite en vue d'étendre le programme. Par exemple,
+\verb+pandoc+ fonctionne de cette manière : il construit un arbre syntaxique
+à partir du fichier d'entrée avant de générer celui de sortie.
+
+Une boite est un ensemble de trois pièces de deux types : extérieure ou
+intérieure. On peut donc se contenter de deux attributs.
+
+Une pièce est un ensemble de cinq facettes de trois types : selon la longueur,
+selon la largeur et le (pla)fond. Là encore, trois attributs suffisent.
+
+Une facette TODO.
+
+\section{Génération du SVG}
+
+Le SVG est généré sous forme de chaînes de caractères afin de pouvoir
+l'afficher de multiples manières (à l'écran, dans un fichier, etc.). Seulement,
+comme le taille de ces chaînes n'est pas définie à l'avance, il a fallu
+utiliser des \textit{unbounded strings}.
+
+Afin de limiter leur manipulation, nous nous sommes basés sur le
+fonctionnement du module \verb+matplotlib+ en Python et avons utilisé une
+machine à état. Concrètement, un fichier SVG est représenté par une variable
+\verb+contents+ appartenant au module et de type \verb+Unbounded_String+. On la
+complète par concaténation au fur et à mesure des appels aux fonctions
+(\verb+header+, \verb+polygon+, etc.).
+
+% =============
+\end{document} 
+% =============
