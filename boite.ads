@@ -4,11 +4,6 @@
 package Boite is
   type Mesure is new Natural;
 
-  type Point is record
-    x: Natural;
-    y: Natural;
-  end record;
-
   type Commande is record
     epaisseur: Mesure := 0;
     longueur: Mesure := 0;
@@ -18,10 +13,17 @@ package Boite is
     hauteurInt: Mesure := 0;
   end record;
 
+  -- Une tuile désigne un trou ou une queue.
+  type Tuile is record
+    taille: Mesure := 0;
+    pleine: Boolean := True; -- Par défaut, c'est une queue.
+  end record;
+
   -- Une facette désigne ce qu'on découpe, puis qu'on assemble à l'aide des
-  -- encoches. Une facette se représente par un polygone (une suite finie de
-  -- points).
-  type Facette is array (Integer range <>) of Point;
+  -- encoches.
+  -- Une facette est un rectangle plein entouré de tuiles. Ici, on part d'un
+  -- coin et liste les différentes tuiles dans le sens horaire.
+  type Facette is array(Integer range <>) of Tuile; 
 
   -- Une pièce a trois types de facettes : celle formant le fond, celles ayant
   -- pour dimensions la longueur et la hauteur et celles ayant pour dimensions
@@ -41,7 +43,8 @@ package Boite is
 
   -- Vérification de la commande
 
-  function commandeInvalide(cmd: Commande) return Boolean;
+  function commandeIncomplete(cmd: Commande) return Boolean;
+  function commandeIrrealisable(cmd: Commande) return Boolean;
 
   -- Création de la boite à partir de la commande
 
@@ -51,13 +54,4 @@ package Boite is
   function creePieceExt(cmd: Commande) return Piece;
   function creePieceInt(cmd: Commande) return Piece;
   function creeBoite(cmd: Commande) return Boite;
-
-  -- Affichage de la boite
-
-  COULEUR_TRAIT : constant String := "255,0,0"; -- RGB
-  EPAISSEUR_TRAIT : constant String := "0.1";
-
-  function facetteVersSVG(f: Facette; x: Integer) return String;
-  function pieceVersSVG(p: Piece; x: Integer) return String;
-  function boiteVersSVG(b: Boite) return String;
 end Boite;
