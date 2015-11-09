@@ -8,7 +8,9 @@ package SVG is
 
   type Points is array (Integer range <>) of Point;
 
-	function Header(w, h: Integer) return String;
-	function Footer return String;
-	function Polygon(pts: Points, width, color: String) return String;
+  procedure init;
+	procedure Header(w, h: Integer);
+	procedure Footer;
+	procedure Polygon(pts: Points; width, color: String);
+  function get_contents return String;
 end SVG;
