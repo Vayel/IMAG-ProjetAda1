@@ -14,8 +14,8 @@ package body IO is
       when others => raise ERREUR_COMMANDE with "Le paramètre " & flag & " n'existe pas.";
     end case;
   end completeCommande;
-  
-  function creeCommande() is
+
+  function creeCommande is
     param: Parametres;
     flag: String;
     val: String;

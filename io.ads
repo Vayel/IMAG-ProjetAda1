@@ -18,7 +18,7 @@ package IO is
 
   -- Affichage d'une boite
 
-  COULEUR_TRAIT : constant String := "255,0,0"; -- RGB
+  COULEUR_TRAIT : constant String := "#FF0000"; -- Hex
   EPAISSEUR_TRAIT : constant String := "0.1";
 
   function facetteVersSVG(f: Facette; x: Integer) return String;
