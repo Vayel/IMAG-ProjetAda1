@@ -3,20 +3,18 @@
 
 with Ada.Text_IO; use Ada.Text_IO;
 with IO;          use IO;
-with Boite;       use Boite;
+with Repr;        use Repr;
 
 
 procedure boites is
   param: Parametres;
-  b : Boite;
-  svg : String;
+  b: Boite;
   f: File_type;
 begin
-  param := litParametres;
-  b := creeBoite(param.cmd);
-  svg := boiteVersSVG(b);
+  param := recupereParametres;
+  -- b := creeBoite(param.cmd);
 
-  create(f, name => param.fname);
-  put(f, svg);
-  close(f);
+  -- create(f, name => to_string(param.fname));
+  -- put(f, boiteVersSVG(b));
+  -- close(f);
 end boites;
