@@ -9,27 +9,27 @@ package body SVG is
     contents := "";
   end;
 
-  procedure Header(w, h: Integer) is
+  procedure header(w, h: Integer) is
   begin
     contents := contents & "<svg width=""" & Integer'image(w) & """"; 
     contents := contents & " height=""" & Integer'image(h) & """>";
   end;
 
-  procedure Footer is
+  procedure footer is
   begin
     contents := contents & "</svg>";
   end;
 
-  procedure Polygon(pts: Points; width, color: String) is
+  procedure polygon(pts: Points; width: Float; color: HexColor) is
   begin
     contents :=  contents & "<polygon points=""";
 
     for k in  pts'range loop
-      contents := contents & Integer'image(pts(k).x) & ",";
-      contents := contents & Integer'image(pts(k).y) & " ";
+      contents := contents & Float'image(pts(k).x) & ",";
+      contents := contents & Float'image(pts(k).y) & " ";
     end loop;
 
-    contents := contents & """ style=""stroke-width:" & width & ";";
+    contents := contents & """ style=""stroke-width:" & Float'image(width) & ";";
     contents := contents &  "stroke:" & color & """ />";
   end;
 

@@ -2,15 +2,16 @@
 
 package SVG is
   type Point is record
-    x: Natural;
-    y: Natural;
+    x: Float;
+    y: Float;
   end record;
 
   type Points is array (Integer range <>) of Point;
+  type HexColor is String(1..6);
 
   procedure init;
-	procedure Header(w, h: Integer);
-	procedure Footer;
-	procedure Polygon(pts: Points; width, color: String);
+	procedure header(w, h: Integer);
+	procedure footer;
+	procedure polygon(pts: Points; width: Float; color: HexColor);
   function get_contents return String;
 end SVG;
