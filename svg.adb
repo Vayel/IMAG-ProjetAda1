@@ -2,11 +2,11 @@ with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 
 
 package body SVG is
-  contents: Unbounded_String := To_Unbounded_String("");
+  contents: Unbounded_String;
 
   procedure init is
   begin
-    contents := "";
+    contents := to_unbounded_string("");
   end;
 
   procedure header(w, h: Integer) is
@@ -20,7 +20,7 @@ package body SVG is
     contents := contents & "</svg>";
   end;
 
-  procedure polygon(pts: Points; width: Float; color: HexColor) is
+  procedure polygon(pts: Points; width: Float; color: String) is
   begin
     contents :=  contents & "<polygon points=""";
 
@@ -30,7 +30,7 @@ package body SVG is
     end loop;
 
     contents := contents & """ style=""stroke-width:" & Float'image(width) & ";";
-    contents := contents &  "stroke:" & color & """ />";
+    contents := contents & "stroke:#" & color & """ />";
   end;
 
   function get_contents return String is
