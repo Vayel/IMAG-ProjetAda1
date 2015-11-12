@@ -1,5 +1,4 @@
--- Ce module reprÃ©sente les donnÃ©es relati Ã  une boite et permet de
--- les afficher.
+-- Ce module représente les données relatifs à une boite.
 
 package Repr is
   type Mesure is new Float;
@@ -13,27 +12,33 @@ package Repr is
     hauteurInt: Mesure := 0.0;
   end record;
 
-  -- Une facette a quatre coins, chacun Ã©tant vide ou plein.
+  -- Une facette a quatre coins, chacun étant vide ou plein.
   type tCoins is array(0..3) of Boolean;
 
-  type tExtremite is record
+  type Extremite is record
     taille: Mesure;
     pleine: Boolean;
   end record;
 
-  type tCotes is record
-    extremite: tExtremite;
-    nbCreneaux: Natural; -- Un crÃneaux est une queue ou une encoche.
+  -- Un côté est un créneau de longueur indéterminée (une extrémité), puis une
+  -- succession de créneaux de longueur q, puis une extrémité.
+  type Cote is record
+    extremite1: Extremite;
+    nbCreneaux: Natural; -- Un créneaux est une queue ou une encoche
+    typeCreneau: Boolean; -- Type du créneau majoritaire
+    extremite2: Extremite;
   end record;
 
-  -- Une facette dÃ©signe ce qu'on dÃ©coupe, puis qu'on assemble Ã  l'aide des
+  type tCotes is array(0..3) of Cote;
+
+  -- Une facette désigne ce qu'on découpe, puis qu'on assemble à l'aide des
   -- encoches.
   type Facette is record
     coins: tCoins;
     cotes: tCotes;
   end record;
 
-  -- Une piÃ¨ce a trois types de facettes : celle formant le fond, celles ayant
+  -- Une pièce a trois types de facettes : celle formant le fond, celles ayant
   -- pour dimensions la longueur et la hauteur et celles ayant pour dimensions
   -- la largeur et la hauteur.
   type Piece is record
@@ -42,24 +47,21 @@ package Repr is
     fond: Facette;
   end record;
 
-  -- Une boite a deux types de piÃ¨ces : celles extÃ©rieures et celle
-  -- intÃ©rieure.
+  -- Une boite a deux types de pièces : celles extérieures et celle
+  -- intérieure.
   type Boite is record
     ext: Piece;
     int: Piece;
   end record;
 
-  -- VÃ©rification de la commande
+  -- Vérification de la commande
 
   function commandeIncomplete(cmd: Commande) return Boolean;
   function commandeIrrealisable(cmd: Commande) return Boolean;
 
-  -- CrÃ©ation de la boite Ã  partir de la commande
+  -- Création de la boite à partir de la commande
 
-  function creeFacetteLong(cmd: Commande) return Facette;
-  function creeFacetteLarg(cmd: Commande) return Facette;
-  function creeFacetteFond(cmd: Commande) return Facette;
-  function creePieceExt(cmd: Commande) return Piece;
-  function creePieceInt(cmd: Commande) return Piece;
+  function creeFacette(cmd: Commande) return Facette;
+  function creePiece(cmd: Commande) return Piece;
   function creeBoite(cmd: Commande) return Boite;
 end Repr;
