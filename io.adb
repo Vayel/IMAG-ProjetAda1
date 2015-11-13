@@ -1,5 +1,5 @@
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
-with Ada.Text_IO;           use Ada.Text_IO;
+with Ada.Command_Line;      use Ada.Command_Line;
 
 
 package body IO is
@@ -18,17 +18,14 @@ package body IO is
 
   function recupereParametres return Parametres is
     param: Parametres;
-    flag: String(1..2);
-    val: String(1..100);
   begin
-    for i in 1..7 loop
-      get(flag);
-      get(val);
-
-      if flag = "-f" then
-        param.fname := to_unbounded_string(val);
-      else
-        completeCommande(param.cmd, flag(1), Mesure'value(val));
+    for i in 1..argument_count loop
+      if i mod 2 = 1 then
+        if argument(i) = "-f" then
+          param.fname := to_unbounded_string(argument(i));
+        else
+          completeCommande(param.cmd, argument(i)(2), Mesure'value(argument(i+1)));
+        end if;
       end if;
     end loop;
 
