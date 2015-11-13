@@ -40,4 +40,33 @@ package body Repr is
 
     return b;
   end;
+
+  -- Utilitaires
+
+  function coteVersCreneaux(c: Cote) return Creneaux is
+    n: Integer;
+    cre: Creneau;
+  begin
+    n := 2 + c.centre.nbCre; -- Deux extrémités + des créneaux classiques
+    cre.taille := c.centre.tailleCre;
+
+    declare
+      cres: Creneaux(1..n);
+    begin
+      cres(1) := c.extr1;
+      cres(n) := c.extr2;
+
+      for i in 2..(n-1) loop
+        if i mod 2 = 0 then
+          cre.plein := c.centre.creExtrPlein;
+         else
+          cre.plein := not c.centre.creExtrPlein;
+        end if;
+
+        cres(i) := cre;
+      end loop;
+
+      return cres;
+    end;
+  end;
 end Repr;

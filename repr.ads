@@ -22,13 +22,20 @@ package Repr is
     plein: Boolean;
   end record;
 
+  type Creneaux is array(Integer range <>) of Creneau;
+
+  type CentreCote is record
+    nbCre: Natural; -- Un créneaux est une queue ou une encoche
+    tailleCre: Mesure;
+    creExtrPlein: Boolean; -- Si les créneaux aux extrémités sont pleins
+  end record;
+
   -- Un côté est un créneau de longueur indéterminée (une extrémité), puis une
   -- succession de créneaux de longueur q, puis une extrémité.
   type Cote is record
-    extremite1: Creneau;
-    nbCreneaux: Natural; -- Un créneaux est une queue ou une encoche
-    typeCreneau: Boolean; -- Type du créneau majoritaire
-    extremite2: Creneau;
+    extr1: Creneau;
+    centre: CentreCote;
+    extr2: Creneau;
   end record;
 
   type tCotes is array(0..3) of Cote;
@@ -65,4 +72,7 @@ package Repr is
 
   function creePiece(l1, l2, h, e, lonCre: Mesure) return Piece;
   function creeBoite(cmd: Commande) return Boite;
+
+  -- Utilitaires
+  function coteVersCreneaux(c: Cote) return Creneaux;
 end Repr;
