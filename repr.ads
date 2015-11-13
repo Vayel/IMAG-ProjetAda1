@@ -14,9 +14,11 @@ package Repr is
     hInt: Mesure := 0.0; -- hauteur intérieure
   end record;
 
-  -- Une facette a quatre coins, chacun étant vide ou plein.
-  type tCoins is array(0..3) of Boolean;
+  -- Une facette a quatre coins, chacun étant vide (un point) ou plein
+  -- (un carré de côté de taille l'épaisseur).
+  type tCoins is array(1..4) of Boolean;
 
+  -- Un Créneau est un trou ou un encoche.
   type Creneau is record
     taille: Mesure;
     plein: Boolean;
@@ -24,6 +26,8 @@ package Repr is
 
   type Creneaux is array(Integer range <>) of Creneau;
 
+  -- Le centre d'un côté d'une facette est la partie contenant les n créneaux
+  -- de taille connue q.
   type CentreCote is record
     nbCre: Natural; -- Un créneaux est une queue ou une encoche
     tailleCre: Mesure;
@@ -38,7 +42,7 @@ package Repr is
     extr2: Creneau;
   end record;
 
-  type tCotes is array(0..3) of Cote;
+  type tCotes is array(1..4) of Cote;
 
   -- Une facette désigne ce qu'on découpe, puis qu'on assemble à l'aide des
   -- encoches.
@@ -74,5 +78,6 @@ package Repr is
   function creeBoite(cmd: Commande) return Boite;
 
   -- Utilitaires
+
   function coteVersCreneaux(c: Cote) return Creneaux;
 end Repr;
