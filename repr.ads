@@ -1,32 +1,34 @@
--- Ce module représente les données relatifs à une boite.
+-- Ce module représente les données relatives à une boite.
 
 package Repr is
-  type Mesure is new Float;
+  NB_MIN_CRE : Float := 3.0;
 
+  subtype Mesure is Float;
+  
   type Commande is record
-    epaisseur: Mesure := 0.0;
-    longueur: Mesure := 0.0;
-    largeur: Mesure := 0.0;
-    longueurQueues: Mesure := 0.0;
-    hauteurExt: Mesure := 0.0;
-    hauteurInt: Mesure := 0.0;
+    e: Mesure := 0.0; -- épaisseur
+    lon: Mesure := 0.0; -- longueur
+    lar: Mesure := 0.0; -- largeur
+    lonCre: Mesure := 0.0; -- longueur des créneaux
+    hExt: Mesure := 0.0; -- hauteur extérieure
+    hInt: Mesure := 0.0; -- hauteur intérieure
   end record;
 
   -- Une facette a quatre coins, chacun étant vide ou plein.
   type tCoins is array(0..3) of Boolean;
 
-  type Extremite is record
+  type Creneau is record
     taille: Mesure;
-    pleine: Boolean;
+    plein: Boolean;
   end record;
 
   -- Un côté est un créneau de longueur indéterminée (une extrémité), puis une
   -- succession de créneaux de longueur q, puis une extrémité.
   type Cote is record
-    extremite1: Extremite;
+    extremite1: Creneau;
     nbCreneaux: Natural; -- Un créneaux est une queue ou une encoche
     typeCreneau: Boolean; -- Type du créneau majoritaire
-    extremite2: Extremite;
+    extremite2: Creneau;
   end record;
 
   type tCotes is array(0..3) of Cote;
@@ -42,8 +44,8 @@ package Repr is
   -- pour dimensions la longueur et la hauteur et celles ayant pour dimensions
   -- la largeur et la hauteur.
   type Piece is record
-    longueur: Facette;
-    largeur: Facette;
+    enLon: Facette;
+    enLar: Facette;
     fond: Facette;
   end record;
 
@@ -61,7 +63,6 @@ package Repr is
 
   -- Création de la boite à partir de la commande
 
-  function creeFacette(cmd: Commande) return Facette;
-  function creePiece(cmd: Commande) return Piece;
+  function creePiece(l1, l2, h, e, lonCre: Mesure) return Piece;
   function creeBoite(cmd: Commande) return Boite;
 end Repr;

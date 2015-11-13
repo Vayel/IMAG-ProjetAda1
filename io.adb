@@ -6,12 +6,12 @@ package body IO is
   procedure completeCommande(cmd: in out Commande; flag: Character; mes: Mesure) is
   begin
     case flag is
-      when 't' => cmd.epaisseur := mes;
-      when 'l' => cmd.longueur := mes;
-      when 'w' => cmd.largeur := mes;
-      when 'q' => cmd.longueurQueues := mes;
-      when 'h' => cmd.hauteurExt := mes;
-      when 'b' => cmd.hauteurInt := mes;
+      when 't' => cmd.e := mes;
+      when 'l' => cmd.lon := mes;
+      when 'w' => cmd.lar := mes;
+      when 'q' => cmd.lonCre := mes;
+      when 'h' => cmd.hExt := mes;
+      when 'b' => cmd.hInt := mes;
       when others => raise ERREUR_COMMANDE with "Le paramètre " & flag & " n'existe pas.";
     end case;
   end completeCommande;
