@@ -69,4 +69,34 @@ package body Repr is
       return cres;
     end;
   end;
+
+  function creneauComplementaire(cr: Creneau) return Creneau is
+    comp: Creneau;
+  begin
+    comp.taille := cr.taille;
+    comp.plein := not cr.plein;
+
+    return comp;
+  end;
+
+  function coteComplementaire(c: Cote) return Cote is
+    cmp: Cote;
+  begin
+    -- Les trous de c deviennent des encoches pour cmp et ses encoches des
+    -- trous.
+    -- Il ne faut pas oublier d'inverser l'ordre des éléments. En effet, le
+    -- côté complémentaire se retrouve à l'opposé sur l'autre facette
+    -- donc est lu dans l'autre sens.
+
+    cmp.extr1 := creneauComplementaire(c.extr2); 
+    cmp.extr2 := creneauComplementaire(c.extr1); 
+    cmp.centre := (c.centre.nbCre, c.centre.tailleCre, not c.centre.creExtrPlein);
+
+    return cmp;
+  end;
+
+  function coinComplementaire(c: Coin) return Coin is
+  begin
+    return not c;
+  end;
 end Repr;

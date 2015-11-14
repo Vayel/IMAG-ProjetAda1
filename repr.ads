@@ -27,10 +27,12 @@ package Repr is
   --   |                   |
   --   |                   |
 
+  subtype Coin is Boolean;
+
   -- Une facette a quatre coins, chacun étant vide (un point) ou plein
   -- (un carré de côté l'épaisseur).
   -- Dans l'exemple ci-dessus, on aurait : [true, false, ...]
-  type tCoins is array(1..4) of Boolean;
+  type tCoins is array(1..4) of Coin;
 
   -- Un Créneau est un trou ou une encoche.
   type Creneau is record
@@ -101,6 +103,7 @@ package Repr is
   -- Utilitaires
 
   function coteVersCreneaux(c: Cote) return Creneaux;
+  function creneauComplementaire(cr: Creneau) return Creneau;
   function coteComplementaire(c: Cote) return Cote;
   function coinComplementaire(c: Coin) return Coin;
 end Repr;
