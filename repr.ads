@@ -14,11 +14,25 @@ package Repr is
     hInt: Mesure := 0.0; -- hauteur intérieure
   end record;
 
+  -- Exemple de morceau de facette
+  --           
+  -- Coin      Côté
+  -- <-><------------------>
+  --            Centre
+  --          <-------->
+  --  Extrémité1     Extrémité2 
+  --    <---->          <-->    
+  --  _        __    __
+  -- |_|______|  |__|  |___
+  --   |                   |
+  --   |                   |
+
   -- Une facette a quatre coins, chacun étant vide (un point) ou plein
-  -- (un carré de côté de taille l'épaisseur).
+  -- (un carré de côté l'épaisseur).
+  -- Dans l'exemple ci-dessus, on aurait : [true, false, ...]
   type tCoins is array(1..4) of Boolean;
 
-  -- Un Créneau est un trou ou un encoche.
+  -- Un Créneau est un trou ou une encoche.
   type Creneau is record
     taille: Mesure;
     plein: Boolean;
@@ -31,7 +45,7 @@ package Repr is
   type CentreCote is record
     nbCre: Natural; -- Un créneaux est une queue ou une encoche
     tailleCre: Mesure;
-    creExtrPlein: Boolean; -- Si les créneaux aux extrémités sont pleins
+    creExtrPlein: Boolean; -- Si les créneaux aux extrémités sont pleins.
   end record;
 
   -- Un côté est un créneau de longueur indéterminée (une extrémité), puis une
@@ -41,6 +55,13 @@ package Repr is
     centre: CentreCote;
     extr2: Creneau;
   end record;
+
+  -- Le côté dessiné plus haut serait représenté comme ça :
+  -- (
+  --    extr1 => (taille => 6, plein => false),
+  --    centre => (nbCre => 3, tailleCre => 2, creExtrPlein => true),
+  --    extr2 => (taille => 3, plein => false)
+  -- )
 
   type tCotes is array(1..4) of Cote;
 
@@ -80,4 +101,6 @@ package Repr is
   -- Utilitaires
 
   function coteVersCreneaux(c: Cote) return Creneaux;
+  function coteComplementaire(c: Cote) return Cote;
+  function coinComplementaire(c: Coin) return Coin;
 end Repr;
