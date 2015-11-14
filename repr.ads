@@ -95,15 +95,15 @@ package Repr is
   function commandeIncomplete(cmd: Commande) return Boolean;
   function commandeIrrealisable(cmd: Commande) return Boolean;
 
-  -- Création de la boite à partir de la commande
-
-  function creePiece(l1, l2, h, e, lonCre: Mesure) return Piece;
-  function creeBoite(cmd: Commande) return Boite;
-
   -- Utilitaires
 
   function coteVersCreneaux(c: Cote) return Creneaux;
   function creneauComplementaire(cr: Creneau) return Creneau;
   function coteComplementaire(c: Cote) return Cote;
   function coinComplementaire(c: Coin) return Coin;
+
+  -- Création de la boite à partir de la commande
+
+  function creePiece(l1, l2, h, e, lonCre: Mesure) return Piece;
+  function creeBoite(cmd: Commande) return Boite;
 end Repr;

@@ -12,7 +12,7 @@ procedure boites is
   f: File_type;
 begin
   param := recupereParametres;
-  -- b := creeBoite(param.cmd);
+  b := creeBoite(param.cmd);
 
   -- create(f, name => to_string(param.fname));
   -- put(f, boiteVersSVG(b));

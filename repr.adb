@@ -24,23 +24,6 @@ package body Repr is
     return tropEpais or tropHaut or pasAssezHaut or qTropLong;
   end;
 
-  -- Création de la boite à partir de la commande
-  
-  function creePiece(l1, l2, h, e, lonCre: Mesure) return Piece is
-    p: Piece;
-  begin
-    return p;
-  end;
-
-  function creeBoite(cmd: Commande) return Boite is
-    b: Boite;
-  begin
-    b.int := creePiece(cmd.lon, cmd.lar, cmd.hInt, cmd.e, cmd.lonCre);
-    b.ext := creePiece(cmd.lon, cmd.lar, cmd.hExt, cmd.e, cmd.lonCre);
-
-    return b;
-  end;
-
   -- Utilitaires
 
   function coteVersCreneaux(c: Cote) return Creneaux is
@@ -98,5 +81,85 @@ package body Repr is
   function coinComplementaire(c: Coin) return Coin is
   begin
     return not c;
+  end;
+
+  -- Création de la boite à partir de la commande
+  
+  function calculeNbCre(lCote, lCre: Mesure) return Natural is
+    n: Integer;
+  begin
+    n := Integer(Float'truncation(lCote / lCre));
+
+    if n mod 2 = 0 then
+      n := n - 1;
+    end if;
+
+    return n;
+  end;
+
+  function mesureExtr(lonCote, lonCre: Mesure) return Mesure is
+    n: Float;
+  begin
+    n := Float(calculeNbCre(lonCote, lonCre));
+
+    return (lonCote - n * lonCre) / 2.0;
+  end;
+
+  function creeFacetteFond(l1, l2, e, lonCre: Mesure) return Facette is
+    f: Facette;
+    coteHori, coteVerti: Cote;
+    lCote1, lCote2: Mesure;
+    tailleExtr: Mesure;
+    n: Natural;
+
+    -- Un côté est de la forme :
+    --     __    __
+    -- ___|  |__|  |___
+    --
+    -- Seuls le nombre de créneaux au centre et la taille commune des
+    -- extrémités varient.
+    function creeCote(n: Natural; lonCre: Mesure; tailleExtr: Mesure) return Cote is
+      c: Cote;
+    begin
+      c.extr1 := (taille => tailleExtr, plein => false);
+      c.centre := (nbCre => n, tailleCre => lonCre, creExtrPlein => true);
+      c.extr2 := (taille => tailleExtr, plein => false);
+
+      return c;
+    end;
+  begin
+    f.coins := (true, true, true, true); -- Par convention, tous les coins sont pleins 
+    
+    lCote1 := l1 - 2.0 * e;
+    lCote2 := l2 - 2.0 * e;
+
+    n := calculeNbCre(lCote1, lonCre);
+    tailleExtr := mesureExtr(lCote1, lonCre);
+    coteHori := creeCote(n, lonCre, tailleExtr); 
+
+    n := calculeNbCre(lCote2, lonCre);
+    tailleExtr := mesureExtr(lCote2, lonCre);
+    coteVerti := creeCote(n, lonCre, tailleExtr); 
+
+    f.cotes := (coteHori, coteVerti, coteHori, coteVerti);
+
+    return f;
+  end;
+
+  function creePiece(l1, l2, h, e, lonCre: Mesure) return Piece is
+    p: Piece;
+  begin
+    p.fond := creeFacetteFond(l1, l2, e, lonCre);
+
+    return p;
+  end;
+
+  function creeBoite(cmd: Commande) return Boite is
+    b: Boite;
+  begin
+    b.int := creePiece(cmd.lon, cmd.lar, cmd.hInt, cmd.e, cmd.lonCre);
+    b.ext := creePiece(cmd.lon, cmd.lar, cmd.hExt, cmd.e, cmd.lonCre);
+
+    return b;
   end;
 end Repr;
