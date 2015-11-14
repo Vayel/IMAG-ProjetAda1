@@ -1,18 +1,26 @@
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
+with Ada.Characters.Latin_1;
 
 
 package body SVG is
   contents: Unbounded_String;
+  newLine: String(1..1) := (1 => Ada.Characters.Latin_1.LF);
 
   procedure init is
   begin
     contents := to_unbounded_string("");
   end;
 
+  procedure addLine is
+  begin
+    contents := contents & newLine;
+  end;
+
   procedure header(w, h: Integer) is
   begin
     contents := contents & "<svg width=""" & Integer'image(w) & """"; 
     contents := contents & " height=""" & Integer'image(h) & """>";
+    addLine;
   end;
 
   procedure footer is
@@ -20,17 +28,24 @@ package body SVG is
     contents := contents & "</svg>";
   end;
 
-  procedure polygon(pts: Points; width: Float; color: String) is
+  procedure startPolygon(lineWidth: Float; color: String) is
   begin
-    contents :=  contents & "<polygon points=""";
+    contents := contents & "<polygon";
+    contents := contents & " style=""fill:none;stroke-width:" & Float'image(lineWidth) & ";";
+    contents := contents & "stroke:#" & color & """";
+    contents := contents & " points=""";
+  end;
 
-    for k in  pts'range loop
-      contents := contents & Float'image(pts(k).x) & ",";
-      contents := contents & Float'image(pts(k).y) & " ";
-    end loop;
+  procedure addPolygonPoint(x, y: Float) is
+  begin
+    contents := contents & Float'image(x) & ",";
+    contents := contents & Float'image(y) & " ";
+  end;
 
-    contents := contents & """ style=""stroke-width:" & Float'image(width) & ";";
-    contents := contents & "stroke:#" & color & """ />";
+  procedure endPolygon is
+  begin
+    contents := contents & """ />";
+    addLine;
   end;
 
   function get_contents return String is
