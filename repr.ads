@@ -46,7 +46,6 @@ package Repr is
   -- de taille connue q.
   type CentreCote is record
     nbCre: Natural; -- Un créneaux est une queue ou une encoche
-    tailleCre: Mesure;
     creExtrPlein: Boolean; -- Si les créneaux aux extrémités sont pleins.
   end record;
 

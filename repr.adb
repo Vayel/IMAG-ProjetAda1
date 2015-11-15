@@ -26,12 +26,12 @@ package body Repr is
 
   -- Utilitaires
 
-  function coteVersCreneaux(c: Cote) return Creneaux is
+  function coteVersCreneaux(c: Cote; lonCre: Mesure) return Creneaux is
     n: Integer;
     cre: Creneau;
   begin
     n := 2 + c.centre.nbCre; -- Deux extrémités + des créneaux classiques
-    cre.taille := c.centre.tailleCre;
+    cre.taille := lonCre;
 
     declare
       cres: Creneaux(1..n);
@@ -73,7 +73,7 @@ package body Repr is
 
     cmp.extr1 := creneauComplementaire(c.extr2); 
     cmp.extr2 := creneauComplementaire(c.extr1); 
-    cmp.centre := (c.centre.nbCre, c.centre.tailleCre, not c.centre.creExtrPlein);
+    cmp.centre := (c.centre.nbCre, not c.centre.creExtrPlein);
 
     return cmp;
   end;
@@ -103,7 +103,7 @@ package body Repr is
     return (lonCote - n * lonCre) / 2.0;
   end;
     
-  function creeCoteSimple(n: Natural; lonCre: Mesure; tailleExtr: Mesure) return Cote is
+  function creeCoteSimple(n: Natural; tailleExtr: Mesure) return Cote is
     -- Un côté simple est de la forme :
     --     __    __
     -- ___|  |__|  |___
@@ -114,7 +114,7 @@ package body Repr is
     c: Cote;
   begin
     c.extr1 := (taille => tailleExtr, plein => false);
-    c.centre := (nbCre => n, tailleCre => lonCre, creExtrPlein => true);
+    c.centre := (nbCre => n, creExtrPlein => true);
     c.extr2 := (taille => tailleExtr, plein => false);
 
     return c;
@@ -123,12 +123,11 @@ package body Repr is
   function creeCotePlat(lon: Mesure; plein: Boolean) return Cote is
     c: Cote;
   begin
-    c.extr1 := (taille => 0.0, plein => false);
+    c.extr1 := (taille => lon, plein => plein);
     c.extr2 := (taille => 0.0, plein => false);
     c.centre := (
-      nbCre => 1,
-      tailleCre => lon,
-      creExtrPlein => plein
+      nbCre => 0,
+      creExtrPlein => false
     );
 
     return c;
@@ -150,11 +149,11 @@ package body Repr is
 
     n := calculeNbCre(lCote1, lonCre);
     tailleExtr := mesureExtr(lCote1, lonCre);
-    coteHori := creeCoteSimple(n, lonCre, tailleExtr); 
+    coteHori := creeCoteSimple(n, tailleExtr); 
 
     n := calculeNbCre(lCote2, lonCre);
     tailleExtr := mesureExtr(lCote2, lonCre);
-    coteVerti := creeCoteSimple(n, lonCre, tailleExtr); 
+    coteVerti := creeCoteSimple(n, tailleExtr); 
 
     f.cotes := (coteHori, coteVerti, coteHori, coteVerti);
 
@@ -169,7 +168,7 @@ package body Repr is
   begin
     n := calculeNbCre(h, lonCre);
     tailleExtr := mesureExtr(h, lonCre);
-    cVerti := creeCoteSimple(n, lonCre, tailleExtr);
+    cVerti := creeCoteSimple(n, tailleExtr);
 
     f.cotes := (creeCotePlat(lon, true), cVerti, cBas, cVerti);
 
