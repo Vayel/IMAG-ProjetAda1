@@ -96,6 +96,7 @@ package Repr is
 
   -- Utilitaires
 
+  function coinPrecCoteIndice(i: Integer) return Integer;
   function coteVersCreneaux(c: Cote; lonCre: Mesure) return Creneaux;
   function crePrecCoinPlein(f: Facette; nCoin: Natural; lonCre: Mesure) return Boolean;
   function creSuivCoinPlein(f: Facette; nCoin: Natural; lonCre: Mesure) return Boolean;

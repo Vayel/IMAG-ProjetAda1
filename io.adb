@@ -10,7 +10,7 @@ with Ada.Text_IO; use Ada.Text_IO;
 
 package body IO is
   lonMaxPoly: Mesure; -- Espace réservé pour dessiner une facette
-  surBordExt: Boolean := false; -- Si le dernier point du polygone courant est sur le bord extérieur de la facette
+  surBordExt: Boolean; -- Si le dernier point du polygoneest sur le bord extérieur de la facette
 
   procedure completeCommande(cmd: in out Commande; flag: Character; mes: Mesure) is
   begin
@@ -49,23 +49,59 @@ package body IO is
 
   -- SVG
 
-  procedure dessineCoin(n: Natural; e: Mesure; crPrevPlein: Boolean) is
+  procedure dessineCoin(n: Natural; e: Mesure; crPrevPlein, crSuivPlein: Boolean) is
   begin
     if n = 1 then
+      if not crPrevPlein then
+        addRelPolyPoint(-e, 0.0);
+      end if;
+
       addRelPolyPoint(0.0, -e);
       addRelPolyPoint(e, 0.0);
+
+      if not crSuivPlein then
+        addRelPolyPoint(0.0, e);
+      end if;
     elsif n = 2 then
+      if not crPrevPlein then
+        addRelPolyPoint(0.0, -e);
+      end if;
+
       addRelPolyPoint(e, 0.0);
       addRelPolyPoint(0.0, e);
+
+      if not crSuivPlein then
+        addRelPolyPoint(-e, 0.0);
+      end if;
     elsif n = 3 then
+      if not crPrevPlein then
+        addRelPolyPoint(e, 0.0);
+      end if;
+
       addRelPolyPoint(0.0, e);
       addRelPolyPoint(-e, 0.0);
+
+      if not crSuivPlein then
+        addRelPolyPoint(0.0, -e);
+      end if;
     elsif n = 4 then
+      if not crPrevPlein then
+        addRelPolyPoint(0.0, e);
+      end if;
+
       addRelPolyPoint(-e, 0.0);
       addRelPolyPoint(0.0, -e);
+
+      if not crSuivPlein then
+        addRelPolyPoint(e, 0.0);
+      end if;
     end if;
 
-    surBordExt := true;
+    if not crSuivPlein then
+      surBordExt := false;
+    else
+      surBordExt := true;
+    end if;
   end;
 
   procedure avancer(nCote: Natural; lon: Mesure) is
@@ -142,15 +178,24 @@ package body IO is
   begin
     startPolygon(EPAISSEUR_TRAIT, COULEUR_TRAIT);
 
-    if f.coins(1) then
+    if crePrecCoinPlein(f, 1, cmd.lonCre) then
+      surBordExt := true;
       addPolyPoint(x0, cmd.e + Y0);
     else
+      surBordExt := false;
       addPolyPoint(cmd.e + x0, cmd.e + Y0);
     end if;
 
     for i in 1..4 loop
       if f.coins(i) then
-        dessineCoin(i, cmd.e, crePrecCoinPlein(f, i, cmd.lonCre));
+        dessineCoin(
+          i, cmd.e, 
+          crePrecCoinPlein(f, i, cmd.lonCre),
+          creSuivCoinPlein(f, i, cmd.lonCre)  
+        );
+      elsif surBordExt then
+        sEcarter(coinPrecCoteIndice(i), cmd.e, true);
+        surBordExt := false;
       end if;
       
       dessineCote(i, coteVersCreneaux(f.cotes(i), cmd.lonCre), cmd);
@@ -166,21 +211,21 @@ package body IO is
 
     facetteVersSVG(p.fond, cmd, x);
 
-    -- x := x + lonMaxPoly;
+    x := x + lonMaxPoly;
 
-    -- for i in 1..2 loop
-    --   facetteVersSVG(p.enLon, cmd, x);
-    --   facetteVersSVG(p.enLar, cmd, x + lonMaxPoly);
+    for i in 1..2 loop
+      facetteVersSVG(p.enLon, cmd, x);
+      facetteVersSVG(p.enLar, cmd, x + lonMaxPoly);
 
-    --   x := x + 2.0 * lonMaxPoly;
-    -- end loop;
+      x := x + 2.0 * lonMaxPoly;
+    end loop;
   end;
 
   procedure piecesVersSVG(b: Boite; cmd: Commande) is
   begin
     pieceVersSVG(b.ext, cmd, 0.0);
-    -- pieceVersSVG(b.ext, cmd, Float(NB_FAC_PAR_PIECE) * lonMaxPoly);
-    -- pieceVersSVG(b.int, cmd, Float(NB_FAC_PAR_PIECE) * 2.0 * lonMaxPoly);
+    pieceVersSVG(b.ext, cmd, Float(NB_FAC_PAR_PIECE) * lonMaxPoly);
+    pieceVersSVG(b.int, cmd, Float(NB_FAC_PAR_PIECE) * 2.0 * lonMaxPoly);
   end;
 
   function boiteVersSVG(b: Boite; cmd: Commande) return String is
