@@ -82,8 +82,6 @@ package body Repr is
   begin
     return not c;
   end;
-
-  -- Création de la boite à partir de la commande
   
   function calculeNbCre(lCote, lCre: Mesure) return Natural is
     n: Integer;
@@ -104,29 +102,46 @@ package body Repr is
 
     return (lonCote - n * lonCre) / 2.0;
   end;
+    
+  function creeCoteSimple(n: Natural; lonCre: Mesure; tailleExtr: Mesure) return Cote is
+    -- Un côté simple est de la forme :
+    --     __    __
+    -- ___|  |__|  |___
+    --
+    -- Seuls le nombre de créneaux au centre et la taille commune des
+    -- extrémités varient.
 
+    c: Cote;
+  begin
+    c.extr1 := (taille => tailleExtr, plein => false);
+    c.centre := (nbCre => n, tailleCre => lonCre, creExtrPlein => true);
+    c.extr2 := (taille => tailleExtr, plein => false);
+
+    return c;
+  end;
+
+  function creeCotePlat(lon: Mesure; plein: Boolean) return Cote is
+    c: Cote;
+  begin
+    c.extr1 := (taille => 0.0, plein => false);
+    c.extr2 := (taille => 0.0, plein => false);
+    c.centre := (
+      nbCre => 1,
+      tailleCre => lon,
+      creExtrPlein => plein
+    );
+
+    return c;
+  end;
+
+  -- Création de la boite à partir de la commande
+  
   function creeFacetteFond(l1, l2, e, lonCre: Mesure) return Facette is
     f: Facette;
     coteHori, coteVerti: Cote;
     lCote1, lCote2: Mesure;
     tailleExtr: Mesure;
     n: Natural;
-
-    -- Un côté est de la forme :
-    --     __    __
-    -- ___|  |__|  |___
-    --
-    -- Seuls le nombre de créneaux au centre et la taille commune des
-    -- extrémités varient.
-    function creeCote(n: Natural; lonCre: Mesure; tailleExtr: Mesure) return Cote is
-      c: Cote;
-    begin
-      c.extr1 := (taille => tailleExtr, plein => false);
-      c.centre := (nbCre => n, tailleCre => lonCre, creExtrPlein => true);
-      c.extr2 := (taille => tailleExtr, plein => false);
-
-      return c;
-    end;
   begin
     f.coins := (true, true, true, true); -- Par convention, tous les coins sont pleins 
     
@@ -135,13 +150,42 @@ package body Repr is
 
     n := calculeNbCre(lCote1, lonCre);
     tailleExtr := mesureExtr(lCote1, lonCre);
-    coteHori := creeCote(n, lonCre, tailleExtr); 
+    coteHori := creeCoteSimple(n, lonCre, tailleExtr); 
 
     n := calculeNbCre(lCote2, lonCre);
     tailleExtr := mesureExtr(lCote2, lonCre);
-    coteVerti := creeCote(n, lonCre, tailleExtr); 
+    coteVerti := creeCoteSimple(n, lonCre, tailleExtr); 
 
     f.cotes := (coteHori, coteVerti, coteHori, coteVerti);
+
+    return f;
+  end;
+
+  function creeFacetteEnLong(lon, h, lonCre: Mesure; cBas: Cote) return Facette is
+    f: Facette;
+    cVerti: Cote;
+    n: Natural;
+    tailleExtr: Mesure;
+  begin
+    n := calculeNbCre(h, lonCre);
+    tailleExtr := mesureExtr(h, lonCre);
+    cVerti := creeCoteSimple(n, lonCre, tailleExtr);
+
+    f.cotes := (creeCotePlat(lon, true), cVerti, cBas, cVerti);
+
+    -- Par convention, les coins du haut sont pleins, ceux du bas vides, pour
+    -- coïncider avec la facette du fond
+    f.coins := (true, true, false, false);
+
+    return f;
+  end;
+
+  function creeFacetteEnLar(lon: Mesure; coteVerti, coteBas: Cote) return Facette is
+    f: Facette;
+  begin
+    f.cotes := (creeCotePlat(lon, true), coteVerti, coteBas, coteVerti);
+
+    f.coins := (false, false, false, false);
 
     return f;
   end;
@@ -150,7 +194,13 @@ package body Repr is
     p: Piece;
   begin
     p.fond := creeFacetteFond(l1, l2, e, lonCre);
-
+    p.enLon := creeFacetteEnLong(l1, h, lonCre, coteComplementaire(p.fond.cotes(1)));
+    p.enLar := creeFacetteEnLar(
+      l2,
+      coteComplementaire(p.enLon.cotes(2)),
+      coteComplementaire(p.fond.cotes(2))
+    );
+    
     return p;
   end;
 
@@ -158,7 +208,7 @@ package body Repr is
     b: Boite;
   begin
     b.int := creePiece(cmd.lon, cmd.lar, cmd.hInt, cmd.e, cmd.lonCre);
-    b.ext := creePiece(cmd.lon, cmd.lar, cmd.hExt, cmd.e, cmd.lonCre);
+    b.ext := creePiece(cmd.lon, cmd.lar, cmd.hExt/2.0, cmd.e, cmd.lonCre);
 
     return b;
   end;
