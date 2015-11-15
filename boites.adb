@@ -1,9 +1,10 @@
 -- Ce module orchestre les autres modules. C'est le point d'entrée de
 -- l'application.
 
-with Ada.Text_IO; use Ada.Text_IO;
-with IO;          use IO;
-with Repr;        use Repr;
+with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
+with Ada.Text_IO;           use Ada.Text_IO;
+with IO;                    use IO;
+with Repr;                  use Repr;
 
 
 procedure boites is
@@ -14,7 +15,7 @@ begin
   param := recupereParametres;
   b := creeBoite(param.cmd);
 
-  -- create(f, name => to_string(param.fname));
-  -- put(f, boiteVersSVG(b));
-  -- close(f);
+  create(f, name => to_string(param.fname));
+  put(f, boiteVersSVG(b, param.cmd));
+  close(f);
 end boites;

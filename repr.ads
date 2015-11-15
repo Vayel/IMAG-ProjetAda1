@@ -36,7 +36,7 @@ package Repr is
 
   -- Un Créneau est un trou ou une encoche.
   type Creneau is record
-    taille: Mesure;
+    lon: Mesure;
     plein: Boolean;
   end record;
 
@@ -93,6 +93,12 @@ package Repr is
 
   function commandeIncomplete(cmd: Commande) return Boolean;
   function commandeIrrealisable(cmd: Commande) return Boolean;
+
+  -- Utilitaires
+
+  function coteVersCreneaux(c: Cote; lonCre: Mesure) return Creneaux;
+  function crePrecCoinPlein(f: Facette; nCoin: Natural; lonCre: Mesure) return Boolean;
+  function creSuivCoinPlein(f: Facette; nCoin: Natural; lonCre: Mesure) return Boolean;
 
   -- Création de la boite à partir de la commande
 

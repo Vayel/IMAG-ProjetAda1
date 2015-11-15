@@ -1,13 +1,13 @@
 -- Ce module gère l'interaction avec le monde extérieur. IO signifie 
 -- Input/Output.
 
-
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 with Repr;                  use Repr;
 
 
 package IO is
-  ERREUR_COMMANDE : exception;
+  ERREUR_COMMANDE: exception;
+  ERREUR_DESSIN: exception;
 
   type Parametres is record
     cmd: Commande;
@@ -20,10 +20,12 @@ package IO is
 
   -- Affichage d'une boite
 
-  COULEUR_TRAIT : constant String := "FF0000"; -- Code hexa 
-  EPAISSEUR_TRAIT : constant Float := 0.1;
+  NB_FACETTES: constant Integer := 15;
+  NB_FAC_PAR_PIECE: constant Integer := 5;
+  MARGE: constant Float := 10.0;
+  Y0: constant Float := 1.0;
+  COULEUR_TRAIT: constant String := "FF0000"; -- Code hexa 
+  EPAISSEUR_TRAIT: constant Float := 0.1;
 
-  function facetteVersSVG(f: Facette; x: Integer) return String;
-  function pieceVersSVG(p: Piece; x: Integer) return String;
-  function boiteVersSVG(b: Boite) return String;
+  function boiteVersSVG(b: Boite; cmd: Commande) return String;
 end IO;

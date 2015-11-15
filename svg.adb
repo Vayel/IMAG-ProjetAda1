@@ -5,6 +5,7 @@ with Ada.Characters.Latin_1;
 package body SVG is
   contents: Unbounded_String;
   newLine: String(1..1) := (1 => Ada.Characters.Latin_1.LF);
+  curX, curY: Float := 0.0;
 
   procedure init is
   begin
@@ -21,6 +22,7 @@ package body SVG is
     contents := contents & "<svg width=""" & Integer'image(w) & """"; 
     contents := contents & " height=""" & Integer'image(h) & """>";
     addLine;
+    addLine;
   end;
 
   procedure footer is
@@ -36,15 +38,29 @@ package body SVG is
     contents := contents & " points=""";
   end;
 
-  procedure addPolygonPoint(x, y: Float) is
+  procedure move(x, y: Float) is
+  begin
+    curX := x;
+    curY := y;
+  end;
+
+  procedure addPolyPoint(x, y: Float) is
   begin
     contents := contents & Float'image(x) & ",";
     contents := contents & Float'image(y) & " ";
+    
+    move(x, y);
+  end;
+
+  procedure addRelPolyPoint(dx, dy: Float) is
+  begin
+    addPolyPoint(curX + dx, curY + dy);
   end;
 
   procedure endPolygon is
   begin
     contents := contents & """ />";
+    addLine;
     addLine;
   end;
 
