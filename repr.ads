@@ -1,7 +1,7 @@
 -- Ce module représente les données relatives à une boite.
 
 package Repr is
-  NB_MIN_CRE : Float := 3.0;
+  NB_MIN_CRE : Float := 3.0; -- Un côté doit être assez long pour avoir trois créneaux
 
   subtype Mesure is Float;
   
@@ -16,16 +16,17 @@ package Repr is
 
   -- Exemple de morceau de facette
   --           
-  -- Coin      Côté
-  -- <-><------------------>
-  --            Centre
-  --          <-------->
-  --  Extrémité1     Extrémité2 
-  --    <---->          <-->    
-  --  _        __    __
-  -- |_|______|  |__|  |___
-  --   |                   |
-  --   |                   |
+  -- Coin                        Coin
+  -- plein         Côté          vide
+  -- <--><-----------------------><>
+  --               Centre
+  --            <---------->
+  --    Extrémités 
+  --     <---->             <----->    
+  --  __        ___     ___
+  -- |__|______|   |___|   |______
+  --    |                         |
+  --    |                         |
 
   subtype Coin is Boolean;
 
@@ -34,7 +35,7 @@ package Repr is
   -- Dans l'exemple ci-dessus, on aurait : [true, false, ...]
   type tCoins is array(1..4) of Coin;
 
-  -- Un Créneau est un trou ou une encoche.
+  -- Un créneau est un trou ou une encoche.
   type Creneau is record
     lon: Mesure;
     plein: Boolean;
@@ -46,22 +47,20 @@ package Repr is
   -- de taille connue q.
   type CentreCote is record
     nbCre: Natural; -- Un créneaux est une queue ou une encoche
-    creExtrPlein: Boolean; -- Si les créneaux aux extrémités sont pleins.
+    creExtrPlein: Boolean; -- Si les créneaux aux extrémités du centre sont pleins.
   end record;
 
   -- Un côté est un créneau de longueur indéterminée (une extrémité), puis une
   -- succession de créneaux de longueur q, puis une extrémité.
   type Cote is record
-    extr1: Creneau;
+    extr: Creneau;
     centre: CentreCote;
-    extr2: Creneau;
   end record;
 
   -- Le côté dessiné plus haut serait représenté comme ça :
   -- (
   --    extr1 => (taille => 6, plein => false),
-  --    centre => (nbCre => 3, tailleCre => 2, creExtrPlein => true),
-  --    extr2 => (taille => 3, plein => false)
+  --    centre => (nbCre => 3, creExtrPlein => true)
   -- )
 
   type tCotes is array(1..4) of Cote;
@@ -77,6 +76,9 @@ package Repr is
   -- pour dimensions la longueur et la hauteur et celles ayant pour dimensions
   -- la largeur et la hauteur.
   type Piece is record
+    lon: Mesure;
+    lar: Mesure;
+    h: Mesure;
     enLon: Facette;
     enLar: Facette;
     fond: Facette;
@@ -85,6 +87,8 @@ package Repr is
   -- Une boite a deux types de pièces : celles extérieures et celle
   -- intérieure.
   type Boite is record
+    e: Mesure;
+    lonCre: Mesure;
     ext: Piece;
     int: Piece;
   end record;
@@ -94,12 +98,12 @@ package Repr is
   function commandeIncomplete(cmd: Commande) return Boolean;
   function commandeIrrealisable(cmd: Commande) return Boolean;
 
-  -- Utilitaires
+  -- Utilitaires appelés à l'extérieur
 
-  function coinPrecCoteIndice(i: Integer) return Integer;
+  function indiceCotePrecCoin(iCoin: Integer) return Integer;
   function coteVersCreneaux(c: Cote; lonCre: Mesure) return Creneaux;
-  function crePrecCoinPlein(f: Facette; nCoin: Natural; lonCre: Mesure) return Boolean;
-  function creSuivCoinPlein(f: Facette; nCoin: Natural; lonCre: Mesure) return Boolean;
+  function crePrecCoin(f: Facette; nCoin: Natural; lonCre: Mesure) return Creneau;
+  function creSuivCoin(f: Facette; nCoin: Natural; lonCre: Mesure) return Creneau;
 
   -- Création de la boite à partir de la commande
 

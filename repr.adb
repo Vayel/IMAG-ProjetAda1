@@ -1,3 +1,6 @@
+-- Conseil : commencer la lecture par la fonction creeBoite, tout en bas, puis
+-- remonter les appels
+
 with Ada.Text_IO; use Ada.Text_IO;
 
 package body Repr is
@@ -28,9 +31,9 @@ package body Repr is
 
   -- Utilitaires
 
-  function coinPrecCoteIndice(i: Integer) return Integer is
+  function indiceCotePrecCoin(iCoin: Integer) return Integer is
   begin
-    return (i - 2) mod 4 + 1;
+    return (iCoin - 2) mod 4 + 1;
   end;
 
   function creneauNonNul(c: Creneau) return Boolean is
@@ -43,7 +46,7 @@ package body Repr is
   begin
     n := c.centre.nbCre;
 
-    if creneauNonNul(c.extr1) then
+    if creneauNonNul(c.extr) then
       n := n + 2;
     end if;
 
@@ -60,9 +63,9 @@ package body Repr is
     declare
       cres: Creneaux(1..n);
     begin
-      if creneauNonNul(c.extr1) then
-        cres(1) := c.extr1;
-        cres(n) := c.extr2;
+      if creneauNonNul(c.extr) then
+        cres(1) := c.extr;
+        cres(n) := c.extr;
 
         for i in 2..(n-1) loop
           if i mod 2 = 0 then
@@ -103,12 +106,8 @@ package body Repr is
   begin
     -- Les trous de c deviennent des encoches pour cmp et ses encoches des
     -- trous.
-    -- Il ne faut pas oublier d'inverser l'ordre des éléments. En effet, le
-    -- côté complémentaire se retrouve à l'opposé sur l'autre facette
-    -- donc est lu dans l'autre sens.
 
-    cmp.extr1 := creneauComplementaire(c.extr2); 
-    cmp.extr2 := creneauComplementaire(c.extr1); 
+    cmp.extr := creneauComplementaire(c.extr); 
     cmp.centre := (c.centre.nbCre, not c.centre.creExtrPlein);
 
     return cmp;
@@ -124,7 +123,7 @@ package body Repr is
   begin
     n := Integer(Float'truncation(lCote / lCre));
 
-    if n mod 2 = 0 then
+    if n mod 2 = 0 then -- Le nombre de créneaux doit être impair
       n := n - 1;
     end if;
 
@@ -138,29 +137,11 @@ package body Repr is
 
     return (lonCote - n * lonCre) / 2.0;
   end;
-    
-  function creeCoteSimple(n: Natural; lonExtr: Mesure) return Cote is
-    -- Un côté simple est de la forme :
-    --     __    __
-    -- ___|  |__|  |___
-    --
-    -- Seuls le nombre de créneaux au centre et la lon commune des
-    -- extrémités varient.
-
-    c: Cote;
-  begin
-    c.extr1 := (lon => lonExtr, plein => false);
-    c.centre := (nbCre => n, creExtrPlein => true);
-    c.extr2 := (lon => lonExtr, plein => false);
-
-    return c;
-  end;
-
+   
   function creeCotePlat(lon: Mesure; plein: Boolean) return Cote is
     c: Cote;
   begin
-    c.extr1 := (lon => lon/2.0, plein => plein);
-    c.extr2 := (lon => lon/2.0, plein => plein);
+    c.extr := (lon => lon/2.0, plein => plein);
     c.centre := (
       nbCre => 0,
       creExtrPlein => false
@@ -169,22 +150,38 @@ package body Repr is
     return c;
   end;
 
-  function crePrecCoinPlein(f: Facette; nCoin: Natural; lonCre: Mesure) return Boolean is
+  function creeCoteSimple(n: Natural; lonExtr: Mesure) return Cote is
+    -- Un côté simple est de la forme :
+    --     __    __
+    -- ___|  |__|  |___
+    --
+    -- Seuls le nombre de créneaux au centre et la longueur commune des
+    -- extrémités varient.
+
+    c: Cote;
+  begin
+    c.extr := (lon => lonExtr, plein => false);
+    c.centre := (nbCre => n, creExtrPlein => true);
+
+    return c;
+  end;
+
+  function crePrecCoin(f: Facette; nCoin: Natural; lonCre: Mesure) return Creneau is
     nCote: Natural;
     c: Cote;
   begin
-    nCote := coinPrecCoteIndice(nCoin);
+    nCote := indiceCotePrecCoin(nCoin);
     c := f.cotes(nCote);
     
     declare
       cre: Creneaux(1..calculeNbCreCote(c));
     begin
       cre := coteVersCreneaux(f.cotes(nCote), lonCre);
-      return cre(cre'last).plein;
+      return cre(cre'last);
     end;
   end;
 
-  function creSuivCoinPlein(f: Facette; nCoin: Natural; lonCre: Mesure) return Boolean is
+  function creSuivCoin(f: Facette; nCoin: Natural; lonCre: Mesure) return Creneau is
     nCote: Natural;
     c: Cote;
   begin
@@ -195,7 +192,7 @@ package body Repr is
       cre: Creneaux(1..calculeNbCreCote(c));
     begin
       cre := coteVersCreneaux(f.cotes(nCote), lonCre);
-      return cre(1).plein;
+      return cre(1);
     end;
   end;
 
@@ -203,45 +200,60 @@ package body Repr is
   
   function creeFacetteFond(l1, l2, e, lonCre: Mesure) return Facette is
     f: Facette;
-    cote1, cote2: Cote;
-    lCote1, lCote2: Mesure;
-    lonExtr1, lonExtr2: Mesure;
-    n1, n2: Natural;
+    coteLon, coteLar: Cote;
+    lCoteLon, lCoteLar: Mesure;
+    lonExtrLon, lonExtrLar: Mesure;
+    nLon, nlar: Natural;
   begin
-    lCote1 := l1 - 2.0 * e;
-    n1 := calculeNbCreCentre(lCote1, lonCre);
-    lonExtr1 := mesureExtr(lCote1, lonCre);
-    cote1 := creeCoteSimple(n1, lonExtr1); 
+    -- Création du côté en longueur
+    lCoteLon := l1 - 2.0 * e;
+    nLon := calculeNbCreCentre(lCoteLon, lonCre);
+    lonExtrLon := mesureExtr(lCoteLon, lonCre);
+    coteLon := creeCoteSimple(nLon, lonExtrLon); 
 
-    lCote2 := l2 - 2.0 * e;
-    n2 := calculeNbCreCentre(lCote2, lonCre);
-    lonExtr2 := mesureExtr(lCote2, lonCre);
-    cote2 := creeCoteSimple(n2, lonExtr2); 
+    -- Création du côté en largeur
+    lCoteLar := l2 - 2.0 * e;
+    nLar := calculeNbCreCentre(lCoteLar, lonCre);
+    lonExtrLar := mesureExtr(lCoteLar, lonCre);
+    cotelar := creeCoteSimple(nLar, lonExtrLar); 
 
-    if lonExtr1 > 0.0 then
+    -- On fait en sorte qu'un coin plein ne peut être entouré de deux creux :
+    --  _
+    -- |_|__
+    --   |
+    --
+    -- On préfère :
+    --
+    --  ___
+    -- |   |_
+    -- |_
+    --   |
+    if lonExtrLon > 0.0 then
       f.coins := (others => false);
     else
       f.coins := (others => true);
     end if;
 
-    f.cotes := (cote1, cote2, cote1, cote2);
+    f.cotes := (1|3 => coteLon, 2|4 => coteLar);
 
     return f;
   end;
 
-  function creeFacetteEnLong(lon, h, e, lonCre: Mesure; cBas: Cote; coinBas: Boolean) return Facette is
+  function creeFacetteEnLon(lon, h, e, lonCre: Mesure; coteBas: Cote; coinBas: Boolean) return Facette is
     f: Facette;
-    cVerti: Cote;
+    coteVerti: Cote;
   begin
-    cVerti := creeCoteSimple(
+    coteVerti := creeCoteSimple(
       calculeNbCreCentre(h - 2.0 * e, lonCre),
       mesureExtr(h - 2.0 * e, lonCre)
     );
 
-    f.cotes := (creeCotePlat(lon - 2.0 * e, true), cVerti, cBas, cVerti);
+    f.cotes := (creeCotePlat(lon - 2.0 * e, true), coteVerti, coteBas, coteVerti);
 
     -- Par convention, les coins du haut sont pleins
-    f.coins := (true, true, coinBas, coinBas);
+    -- Le coin du bas est le complémentaire du coin correspondant sur la
+    -- facette du fond
+    f.coins := (1|2 => true, 3|4 => coinBas);
 
     return f;
   end;
@@ -249,28 +261,33 @@ package body Repr is
   function creeFacetteEnLar(lon, e: Mesure; coteVerti, coteBas: Cote) return Facette is
     f: Facette;
   begin
-    f.cotes := (creeCotePlat(lon - 2.0 * e, true), coteVerti, coteBas, coteVerti);
+    f.cotes := (
+      creeCotePlat(lon - 2.0 * e, true),
+      coteVerti, coteBas, coteVerti
+    );
 
-    f.coins := (false, false, false, false);
+    f.coins := (others => false);
 
     return f;
   end;
 
-  function creePiece(l1, l2, h, e, lonCre: Mesure) return Piece is
+  function creePiece(lon, lar, h, e, lonCre: Mesure) return Piece is
     p: Piece;
   begin
-    p.fond := creeFacetteFond(l1, l2, e, lonCre);
-    p.enLon := creeFacetteEnLong(
-      l1,
-      h,
-      e,
-      lonCre,
+    p.lon := lon;
+    p.lar := lar;
+    p.h := h;
+
+    p.fond := creeFacetteFond(lon, lar, e, lonCre);
+
+    p.enLon := creeFacetteEnLon(
+      lon, h, e, lonCre,
       coteComplementaire(p.fond.cotes(1)),
       coinComplementaire(p.fond.coins(1))
     );
+
     p.enLar := creeFacetteEnLar(
-      l2,
-      e,
+      lar, e,
       coteComplementaire(p.enLon.cotes(2)),
       coteComplementaire(p.fond.cotes(2))
     );
@@ -281,7 +298,9 @@ package body Repr is
   function creeBoite(cmd: Commande) return Boite is
     b: Boite;
   begin
-    b.int := creePiece(cmd.lon, cmd.lar, cmd.hInt, cmd.e, cmd.lonCre);
+    b.e := cmd.e;
+    b.lonCre := cmd.lonCre;
+    b.int := creePiece(cmd.lon - 2.0 * cmd.e, cmd.lar - 2.0 * cmd.e, cmd.hInt, cmd.e, cmd.lonCre);
     b.ext := creePiece(cmd.lon, cmd.lar, cmd.hExt/2.0, cmd.e, cmd.lonCre);
 
     return b;

@@ -1,16 +1,20 @@
+-- Conseil : commencer la lecture par la dernière fonction du fichier et
+-- remonter les appels
+
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 with Ada.Command_Line;      use Ada.Command_Line;
 with SVG;                   use SVG;
 with Repr;                  use Repr;
 
-with Ada.Float_Text_IO; use Ada.Float_Text_IO;
-with Ada.Integer_Text_IO; use Ada.Integer_Text_IO;
-with Ada.Text_IO; use Ada.Text_IO;
-
 
 package body IO is
-  lonMaxPoly: Mesure; -- Espace réservé pour dessiner une facette
-  surBordExt: Boolean; -- Si le dernier point du polygoneest sur le bord extérieur de la facette
+  -- Un indicateur pour savoir où se situe le dernier point tracé par rapport
+  -- au bord intérieur. Par exemple :
+  --
+  -- ____ : bord intérieur
+  --      _
+  -- ____|  : bord extérieur
+  surBordExt: Boolean;
 
   procedure completeCommande(cmd: in out Commande; flag: Character; mes: Mesure) is
   begin
@@ -47,62 +51,24 @@ package body IO is
     return param;
   end recupereParametres;
 
-  -- SVG
+  -- Utilitaires
 
-  procedure dessineCoin(n: Natural; e: Mesure; crPrevPlein, crSuivPlein: Boolean) is
+  function lonDessinFac(l: Mesure) return Mesure is
   begin
-    if n = 1 then
-      if not crPrevPlein then
-        addRelPolyPoint(-e, 0.0);
-      end if;
-
-      addRelPolyPoint(0.0, -e);
-      addRelPolyPoint(e, 0.0);
-
-      if not crSuivPlein then
-        addRelPolyPoint(0.0, e);
-      end if;
-    elsif n = 2 then
-      if not crPrevPlein then
-        addRelPolyPoint(0.0, -e);
-      end if;
-
-      addRelPolyPoint(e, 0.0);
-      addRelPolyPoint(0.0, e);
-
-      if not crSuivPlein then
-        addRelPolyPoint(-e, 0.0);
-      end if;
-    elsif n = 3 then
-      if not crPrevPlein then
-        addRelPolyPoint(e, 0.0);
-      end if;
-
-      addRelPolyPoint(0.0, e);
-      addRelPolyPoint(-e, 0.0);
-
-      if not crSuivPlein then
-        addRelPolyPoint(0.0, -e);
-      end if;
-    elsif n = 4 then
-      if not crPrevPlein then
-        addRelPolyPoint(0.0, e);
-      end if;
-
-      addRelPolyPoint(-e, 0.0);
-      addRelPolyPoint(0.0, -e);
-
-      if not crSuivPlein then
-        addRelPolyPoint(e, 0.0);
-      end if;
-    end if;
-
-    if not crSuivPlein then
-      surBordExt := false;
-    else
-      surBordExt := true;
-    end if;
+    return l + MARGE;
   end;
+
+  function lonDessinPiece(p: Piece) return Mesure is
+  begin
+    return 3.0 * lonDessinFac(p.lon) + 2.0 * lonDessinFac(p.lar);
+  end;
+
+  function lonDessinBoite(b: Boite) return Mesure is
+  begin
+    return 2.0 * lonDessinPiece(b.ext) + lonDessinPiece(b.int);
+  end;
+
+  -- SVG
 
   procedure avancer(nCote: Natural; lon: Mesure) is
     dx, dy: Float := 0.0;
@@ -116,14 +82,10 @@ package body IO is
     addRelPolyPoint(dx, dy);
   end;
 
-  procedure sEcarter(nCote: Natural; e: Mesure; rappr: Boolean) is
+  procedure sEcarter(nCote: Natural; e: Mesure; rappr: Boolean := false) is
     dx, dy: Float := 0.0;
     fact: Float := 1.0;
   begin
-    if (rappr and not surBordExt) or (not rappr and surBordExt) then
-      raise ERREUR_DESSIN with "Mauvais positionnement par rapport au centre.";
-    end if;
-
     if rappr then
       fact := -1.0;
     end if;
@@ -138,10 +100,67 @@ package body IO is
     surBordExt := not rappr;
   end;
   
+  procedure seRapprocher(nCote: Natural; e: Mesure) is
+  begin
+    sEcarter(nCote, e, true);
+  end;
+
+  procedure dessineCoin(n: Natural; e: Mesure; crPrevPlein, crSuivPlein: Boolean) is
+    i: Integer;
+  begin
+    i := indiceCotePrecCoin(n);
+
+    if not crPrevPlein then
+      -- Si le créneau précédent n'est pas plein, il faut d'abord s'écarter
+      --  __
+      -- |__  
+      --    |
+      --    |
+      --
+      -- Sinon, on prolonge :
+      --  __
+      -- |
+      -- |
+      -- |
+      sEcarter(i, e);
+    end if;
+
+    avancer(i, e);
+    avancer(n, e);
+
+    if not crSuivPlein then
+      -- Si le créneau suivant n'est pas plein, il faut se rapprocher :
+      --  __
+      -- |  |
+      -- |
+      --
+      -- Sinon, on prolongera au moment de dessiner le créneau :
+      --  ____
+      -- |    
+      -- |
+      seRapprocher(n, e);
+      surBordExt := false;
+    else
+      surBordExt := true;
+    end if;
+  end;
+
   procedure dessineCrePlein(nCote: Natural; lon: Mesure; e: Mesure) is
   begin
+    -- On dessine un créneau du genre :
+    --
+    --     __
+    -- ___|
+    --
+    -- On ne le ferme pas pour éviter les dessins comme :
+    --     __ __
+    -- ___|  |
+    --
+    -- A la place, on a :
+    --     ____
+    -- ___|
     if not surBordExt then
-      sEcarter(nCote, e, false);
+      sEcarter(nCote, e);
     end if;
 
     avancer(nCote, lon);
@@ -150,8 +169,8 @@ package body IO is
   procedure dessineCreCreux(nCote: Natural; lon: Mesure; e: Mesure) is
     dx, dy: Float := 0.0;
   begin
-    if surBordExt then
-      sEcarter(nCote, e, true);
+    if surBordExt then -- Un creux se fait toujours sur le bord intérieur
+      seRapprocher(nCote, e);
     end if;
 
     if nCote = 1 then dx := lon;
@@ -163,78 +182,85 @@ package body IO is
     addRelPolyPoint(dx, dy);
   end;
 
-  procedure dessineCote(n: Natural; c: Creneaux; cmd: Commande) is
+  procedure dessineCote(n: Natural; c: Creneaux; e: Mesure) is
   begin
     for i in 1..c'last loop
       if c(i).plein then
-        dessineCrePlein(n, c(i).lon, cmd.e);
+        dessineCrePlein(n, c(i).lon, e);
       else
-        dessineCreCreux(n, c(i).lon, cmd.e);
+        dessineCreCreux(n, c(i).lon, e);
       end if;
     end loop;
   end;
 
-  procedure facetteVersSVG(f: Facette; cmd: Commande; x0: Float) is
+  procedure facetteVersSVG(f: Facette; e, lonCre: Mesure; x0: Float) is
   begin
     startPolygon(EPAISSEUR_TRAIT, COULEUR_TRAIT);
-
-    if crePrecCoinPlein(f, 1, cmd.lonCre) then
+    
+    -- Si le créneau précdent le premier coin est plein, tout comme le premier
+    -- coin, on part directement de l'extérieur, pour éviter un dessin du
+    -- genre :
+    --  ____
+    -- |__  |__
+    -- |
+    if crePrecCoin(f, 1, lonCre).plein and f.coins(1) then
       surBordExt := true;
-      addPolyPoint(x0, cmd.e + Y0);
+      addPolyPoint(x0, e);
     else
       surBordExt := false;
-      addPolyPoint(cmd.e + x0, cmd.e + Y0);
+      addPolyPoint(e + x0, e);
     end if;
 
     for i in 1..4 loop
       if f.coins(i) then
         dessineCoin(
-          i, cmd.e, 
-          crePrecCoinPlein(f, i, cmd.lonCre),
-          creSuivCoinPlein(f, i, cmd.lonCre)  
+          i, e, 
+          crePrecCoin(f, i, lonCre).plein,
+          creSuivCoin(f, i, lonCre).plein
         );
-      elsif surBordExt then
-        sEcarter(coinPrecCoteIndice(i), cmd.e, true);
+      elsif surBordExt then -- Le créneau précédent était plein, il faut le terminer
+        sEcarter(indiceCotePrecCoin(i), e, true);
         surBordExt := false;
       end if;
       
-      dessineCote(i, coteVersCreneaux(f.cotes(i), cmd.lonCre), cmd);
+      dessineCote(i, coteVersCreneaux(f.cotes(i), lonCre), e);
     end loop;
 
     endPolygon;
   end;
 
-  procedure pieceVersSVG(p: Piece; cmd: Commande; x0: Float) is
+  procedure pieceVersSVG(p: Piece; e, lonCre: Mesure; x0: Float) is
     x: Float;
   begin
     x := x0;
 
-    facetteVersSVG(p.fond, cmd, x);
-
-    x := x + lonMaxPoly;
+    facetteVersSVG(p.fond, e, lonCre, x);
+    x := x + lonDessinFac(p.lon);
 
     for i in 1..2 loop
-      facetteVersSVG(p.enLon, cmd, x);
-      facetteVersSVG(p.enLar, cmd, x + lonMaxPoly);
+      facetteVersSVG(p.enLon, e, lonCre, x);
+      x := x + lonDessinFac(p.lon);
 
-      x := x + 2.0 * lonMaxPoly;
+      facetteVersSVG(p.enLar, e, lonCre, x);
+      x := x + lonDessinFac(p.lar);
     end loop;
   end;
 
-  procedure piecesVersSVG(b: Boite; cmd: Commande) is
+  procedure piecesVersSVG(b: Boite) is
   begin
-    pieceVersSVG(b.ext, cmd, 0.0);
-    pieceVersSVG(b.ext, cmd, Float(NB_FAC_PAR_PIECE) * lonMaxPoly);
-    pieceVersSVG(b.int, cmd, Float(NB_FAC_PAR_PIECE) * 2.0 * lonMaxPoly);
+    pieceVersSVG(b.ext, b.e, b.lonCre, 0.0);
+    pieceVersSVG(b.ext, b.e, b.lonCre, lonDessinPiece(b.ext));
+    pieceVersSVG(b.int, b.e, b.lonCre, 2.0 * lonDessinPiece(b.ext));
   end;
 
-  function boiteVersSVG(b: Boite; cmd: Commande) return String is
+  function boiteVersSVG(b: Boite) return String is
+    hMax: Mesure;
   begin
-    lonMaxPoly := Mesure'max(cmd.lon, Mesure'max(cmd.hInt,cmd.lar)) + MARGE;
+    hMax := Mesure'max(b.ext.lar, b.int.h);
 
     init;
-    header(Integer(lonMaxPoly) * NB_FACETTES, Integer(lonMaxPoly + Y0));
-    piecesVersSVG(b, cmd);
+    header(Integer(lonDessinBoite(b)), Integer(hMax));
+    piecesVersSVG(b);
     footer;
 
     return get_contents;

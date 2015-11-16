@@ -22,10 +22,9 @@ package IO is
 
   NB_FACETTES: constant Integer := 15;
   NB_FAC_PAR_PIECE: constant Integer := 5;
-  MARGE: constant Float := 10.0;
-  Y0: constant Float := 1.0;
-  COULEUR_TRAIT: constant String := "FF0000"; -- Code hexa 
+  MARGE: constant Float := 10.0; -- Marge entre les dessins des facettes
+  COULEUR_TRAIT: constant String := "FF0000";
   EPAISSEUR_TRAIT: constant Float := 0.1;
 
-  function boiteVersSVG(b: Boite; cmd: Commande) return String;
+  function boiteVersSVG(b: Boite) return String;
 end IO;

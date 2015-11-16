@@ -16,6 +16,6 @@ begin
   b := creeBoite(param.cmd);
 
   create(f, name => to_string(param.fname));
-  put(f, boiteVersSVG(b, param.cmd));
+  put(f, boiteVersSVG(b));
   close(f);
 end boites;
